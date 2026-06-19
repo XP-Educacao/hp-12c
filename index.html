@@ -26,6 +26,30 @@
       display: inline-block;
     }
 
+    #close-btn {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      z-index: 10;
+      width: 34px;
+      height: 34px;
+      border: none;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.75);
+      color: #fff;
+      font-size: 20px;
+      line-height: 1;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 0 8px rgba(0,0,0,0.35);
+    }
+
+    #close-btn:hover {
+      background: rgba(200, 0, 0, 0.9);
+    }
+
     /* pointer_div: sized to 700×438 (the JS coord system) */
     #pointer_div {
       position: relative;
@@ -123,6 +147,7 @@
 <body>
 
 <div id="adcontainer">
+  <button id="close-btn" type="button" aria-label="Fechar calculadora">×</button>
   <div id="pointer_div" tabindex="0">
 
     <!-- The calculator image; also the click target ("cross") -->
@@ -328,6 +353,15 @@
     }
     setSize();
     window.addEventListener('resize', setSize);
+
+    var closeBtn = document.getElementById('close-btn');
+    if (closeBtn) {
+      closeBtn.addEventListener('click', function () {
+        window.close();
+        // Fallback se o navegador bloquear window.close()
+        window.location.href = 'about:blank';
+      });
+    }
   })();
 </script>
 <script src="js/hp12c-web.js"></script>
