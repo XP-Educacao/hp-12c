@@ -1,0 +1,71 @@
+div#adcontainer {
+}
+
+div#pointer_div {
+}
+
+div#adcalc {
+	width: 300px;
+	height: 600px;
+	padding: 0 0 0 0;
+	left: 620px;
+	top: 0px;
+	/* background-color: cyan; */
+	position: absolute;
+}
+
+div#adcalcb {
+	width: 320px;
+	height: 100px;
+	padding: 0 0 0 0;
+	left: 140px;
+	top: 385px;
+	/* background-color: cyan; */
+	position: absolute;
+}
+
+div#klayout {
+}
+
+input#display {
+	visibility: hidden;
+}
+
+div#pointer_div img {
+        border: 0;
+        padding: 0;
+	margin-left: 0;
+	margin-top: 0;
+	margin-right: 0;
+	margin-bottom: 0;
+	float: none;
+	clear: right;
+}
+
+span.hpkey {
+	padding: 0;
+	margin: 0;
+	color: #000;
+	opacity: 1; 
+	font-family: "Courier New", Courier, monospace;
+	font-weight: bold;
+	font-size: 35px;
+}
+
+span.hpkeysmall {
+	padding: 0;
+	margin: 0;
+	color: #000;
+	opacity: 1; 
+	font-size: 15px;
+}
+
+div#pointer_div span {
+	color: #000;
+}
+
+span.ks {
+	border: 1px solid black;
+	padding: 0.05em 0.4em 0.05em 0.4em;
+	margin: 0 0.1em 0 0.1em;
+}

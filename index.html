@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>HP-12C Financial Calculator</title>
+  <link rel="icon" href="favicon.png">
+  <link rel="stylesheet" href="css/hp1xc.css">
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    html, body {
+      width: 100%;
+      min-height: 100%;
+      background: #1a1a1a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-family: Arial, sans-serif;
+    }
+
+    /* ── wrapper scales the whole calc ── */
+    #adcontainer {
+      position: relative;
+      display: inline-block;
+    }
+
+    /* pointer_div: sized to 700×438 (the JS coord system) */
+    #pointer_div {
+      position: relative;
+      width: 700px;
+      height: 438px;
+    }
+
+    #pointer_div img#cross {
+      display: block;
+      width: 700px;
+      height: 438px;
+      cursor: pointer;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* ── LCD display overlay ── */
+    #lcd-overlay {
+      position: absolute;
+      top: 805px;
+      left: 44px;
+      width: 560px;
+      height: 52px;
+      display: flex;
+      align-items: center;
+      justify-content: flex-end;
+      pointer-events: none;
+      transition: transform 0.2s ease-in-out;
+      transform-origin: right center;
+    }
+
+    /* Each digit: 7-segment SVG */
+    .lcd-digit {
+      position: relative;
+      width: 36px;
+      height: 52px;
+      margin-right: 2px;
+      flex-shrink: 0;
+    }
+
+    .lcd-digit svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+    }
+
+    /* segment colours */
+    .seg { fill: #00cc00; }
+    .seg-off { fill: #003300; }
+
+    /* status indicators row */
+    #status-row {
+      position: absolute;
+      top: 72px;
+      left: 44px;
+      width: 560px;
+      height: 14px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      pointer-events: none;
+    }
+
+    .indicator {
+      font-size: 9px;
+      color: #003300;
+      font-family: monospace;
+      font-weight: bold;
+      visibility: hidden;
+    }
+
+    /* hidden input the JS touches */
+    input#display { visibility: hidden; position: absolute; }
+
+    /* responsive scaling */
+    @media (max-width: 740px) {
+      #pointer_div,
+      #pointer_div img#cross {
+        width: 100vw;
+        height: calc(100vw * 438 / 700);
+      }
+      #lcd-overlay {
+        width: calc(100vw * 560 / 700);
+        left: calc(100vw * 44 / 700);
+        top: calc(100vw * 18 / 700);
+        height: calc(100vw * 52 / 700);
+      }
+      .lcd-digit {
+        width: calc(100vw * 36 / 700);
+        height: calc(100vw * 52 / 700);
+      }
+    }
+  </style>
+</head>
+<body>
+
+<div id="adcontainer">
+  <div id="pointer_div" tabindex="0">
+
+    <!-- The calculator image; also the click target ("cross") -->
+    <img id="cross" src="images/hp12c.png" alt="HP-12C Calculator" draggable="false">
+
+    <!-- LCD display overlay -->
+    <div id="lcd-overlay">
+      <!-- 11 digits: lcd0 … lcd10 -->
+      <!-- Each digit has segments a-g (7-seg), p (decimal point), t (thousands comma) -->
+      <!-- JS toggles visibility on each span -->
+
+      <!-- Generate digits 0-10 inline -->
+<div class="lcd-digit" id="lcd-digit-0">
+  <img id="lcd0a" src="images/11_lcda.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd0b" src="images/11_lcdb.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd0c" src="images/11_lcdc.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd0d" src="images/11_lcdd.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd0e" src="images/11_lcde.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd0f" src="images/11_lcdf.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd0g" src="images/11_lcdg.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd0p" src="images/11_lcdp.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd0t" src="images/11_lcdt.png" style="visibility:hidden; position:absolute;">
+</div>
+
+<div class="lcd-digit" id="lcd-digit-1">
+  <img id="lcd1a" src="images/11_lcda.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd1b" src="images/11_lcdb.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd1c" src="images/11_lcdc.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd1d" src="images/11_lcdd.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd1e" src="images/11_lcde.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd1f" src="images/11_lcdf.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd1g" src="images/11_lcdg.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd1p" src="images/11_lcdp.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd1t" src="images/11_lcdt.png" style="visibility:hidden; position:absolute;">
+</div>
+
+<div class="lcd-digit" id="lcd-digit-2">
+  <img id="lcd2a" src="images/11_lcda.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd2b" src="images/11_lcdb.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd2c" src="images/11_lcdc.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd2d" src="images/11_lcdd.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd2e" src="images/11_lcde.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd2f" src="images/11_lcdf.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd2g" src="images/11_lcdg.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd2p" src="images/11_lcdp.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd2t" src="images/11_lcdt.png" style="visibility:hidden; position:absolute;">
+</div>
+
+<div class="lcd-digit" id="lcd-digit-3">
+  <img id="lcd3a" src="images/11_lcda.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd3b" src="images/11_lcdb.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd3c" src="images/11_lcdc.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd3d" src="images/11_lcdd.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd3e" src="images/11_lcde.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd3f" src="images/11_lcdf.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd3g" src="images/11_lcdg.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd3p" src="images/11_lcdp.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd3t" src="images/11_lcdt.png" style="visibility:hidden; position:absolute;">
+</div>
+
+<div class="lcd-digit" id="lcd-digit-4">
+  <img id="lcd4a" src="images/11_lcda.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd4b" src="images/11_lcdb.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd4c" src="images/11_lcdc.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd4d" src="images/11_lcdd.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd4e" src="images/11_lcde.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd4f" src="images/11_lcdf.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd4g" src="images/11_lcdg.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd4p" src="images/11_lcdp.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd4t" src="images/11_lcdt.png" style="visibility:hidden; position:absolute;">
+</div>
+
+<div class="lcd-digit" id="lcd-digit-5">
+  <img id="lcd5a" src="images/11_lcda.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd5b" src="images/11_lcdb.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd5c" src="images/11_lcdc.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd5d" src="images/11_lcdd.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd5e" src="images/11_lcde.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd5f" src="images/11_lcdf.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd5g" src="images/11_lcdg.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd5p" src="images/11_lcdp.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd5t" src="images/11_lcdt.png" style="visibility:hidden; position:absolute;">
+</div>
+
+<div class="lcd-digit" id="lcd-digit-6">
+  <img id="lcd6a" src="images/11_lcda.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd6b" src="images/11_lcdb.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd6c" src="images/11_lcdc.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd6d" src="images/11_lcdd.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd6e" src="images/11_lcde.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd6f" src="images/11_lcdf.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd6g" src="images/11_lcdg.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd6p" src="images/11_lcdp.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd6t" src="images/11_lcdt.png" style="visibility:hidden; position:absolute;">
+</div>
+
+<div class="lcd-digit" id="lcd-digit-7">
+  <img id="lcd7a" src="images/11_lcda.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd7b" src="images/11_lcdb.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd7c" src="images/11_lcdc.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd7d" src="images/11_lcdd.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd7e" src="images/11_lcde.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd7f" src="images/11_lcdf.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd7g" src="images/11_lcdg.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd7p" src="images/11_lcdp.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd7t" src="images/11_lcdt.png" style="visibility:hidden; position:absolute;">
+</div>
+
+<div class="lcd-digit" id="lcd-digit-8">
+  <img id="lcd8a" src="images/11_lcda.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd8b" src="images/11_lcdb.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd8c" src="images/11_lcdc.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd8d" src="images/11_lcdd.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd8e" src="images/11_lcde.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd8f" src="images/11_lcdf.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd8g" src="images/11_lcdg.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd8p" src="images/11_lcdp.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd8t" src="images/11_lcdt.png" style="visibility:hidden; position:absolute;">
+</div>
+
+<div class="lcd-digit" id="lcd-digit-9">
+  <img id="lcd9a" src="images/11_lcda.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd9b" src="images/11_lcdb.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd9c" src="images/11_lcdc.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd9d" src="images/11_lcdd.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd9e" src="images/11_lcde.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd9f" src="images/11_lcdf.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd9g" src="images/11_lcdg.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd9p" src="images/11_lcdp.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd9t" src="images/11_lcdt.png" style="visibility:hidden; position:absolute;">
+</div>
+
+<div class="lcd-digit" id="lcd-digit-10">
+  <img id="lcd10a" src="images/11_lcda.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd10b" src="images/11_lcdb.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd10c" src="images/11_lcdc.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd10d" src="images/11_lcdd.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd10e" src="images/11_lcde.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd10f" src="images/11_lcdf.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd10g" src="images/11_lcdg.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd10p" src="images/11_lcdp.png" style="visibility:hidden; position:absolute;">
+  <img id="lcd10t" src="images/11_lcdt.png" style="visibility:hidden; position:absolute;">
+</div>
+
+    <!-- Status indicators -->
+    <div id="status-row">
+      <span id="begin"      class="indicator">BEGIN</span>
+      <span id="dmyc"       class="indicator">D.MY</span>
+      <span id="modifier"   class="indicator">f/g</span>
+      <span id="pgrm"       class="indicator">PRGM</span>
+      <span id="rpnalg"     class="indicator">RPN</span>
+      <span id="trigo"      class="indicator">RAD</span>
+      <span id="user"       class="indicator">USER</span>
+      <span id="carry"      class="indicator">C</span>
+      <span id="overflow"   class="indicator">OV</span>
+      <span id="complex"    class="indicator">C</span>
+      <span id="altdisplay" class="indicator"></span>
+      <span id="wordstatus" class="indicator"></span>
+      <span id="undo"       class="indicator">UNDO</span>
+      <span id="parentheses" class="indicator">()</span>
+    </div>
+
+    <!-- hidden input required by the JS -->
+    <input type="text" id="display" readonly>
+
+  </div><!-- /#pointer_div -->
+</div><!-- /#adcontainer -->
+
+<!-- stub for window.console.ut_snap used in the engine -->
+<script>
+  window.console = window.console || {};
+  window.console.ut_snap = function() {};
+</script>
+
+<script src="js/jquery.js"></script>
+<script src="js/hp12c-min.js"></script>
+<script>
+  // The JS reads pointer_div.style.width/height — set them explicitly
+  (function () {
+    var pd = document.getElementById('pointer_div');
+    // Use actual rendered size so kx/ky scaling is correct
+    function setSize() {
+      // keep 700×438 unless viewport is narrow
+      var maxW = Math.min(700, window.innerWidth - 20);
+      var h    = Math.round(maxW * 438 / 700);
+      pd.style.width  = maxW + 'px';
+      pd.style.height = h    + 'px';
+      var img = document.getElementById('cross');
+      img.style.width  = maxW + 'px';
+      img.style.height = h    + 'px';
+      // re-scale the LCD overlay
+      var scale = maxW / 700;
+      var overlay = document.getElementById('lcd-overlay');
+      overlay.style.left   = Math.round(44  * scale) + 'px';
+      overlay.style.top    = Math.round(55  * scale) + 'px';
+      overlay.style.width  = Math.round(480 * scale) + 'px';
+      overlay.style.height = Math.round(52  * scale) + 'px';
+      var digits = document.querySelectorAll('.lcd-digit');
+      digits.forEach(function(d) {
+        d.style.width  = Math.round(28 * scale) + 'px';
+        d.style.height = Math.round(40 * scale) + 'px';
+      });
+    }
+    setSize();
+    window.addEventListener('resize', setSize);
+  })();
+</script>
+<script src="js/hp12c-web.js"></script>
+<script src="js/display-scroll.js"></script>
+
+</body>
+</html>
